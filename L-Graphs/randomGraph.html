@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Graph</title>
+    <style>
+        html,
+        body,
+        #graph {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+    </style>
+    <script src="//unpkg.com/force-graph"></script>
+</head>
+
+<body>
+    <div id="graph"></div>
+    <script>
+        const graph = ForceGraph()(document.getElementById('graph'));
+
+        const numNodes = 10;
+        const nodes = [];
+        const links = [];
+
+        for (let i = 0; i < numNodes; i++) {
+            nodes.push({
+                id: i,
+                size: Math.random() * 10 + 5 // random size between 5 and 15
+            });
+
+            if (i > 0) {
+                links.push({
+                    source: i,
+                    target: Math.floor(Math.random() * i) // randomly connect to previous nodes
+                });
+            }
+        }
+
+        graph
+            .nodeLabel('id')
+            .nodeRelSize(5)
+            .nodeVal(node => node.size)
+            .graphData({
+                nodes: nodes,
+                links: links
+            });
+    </script>
+</body>
+
+</html>

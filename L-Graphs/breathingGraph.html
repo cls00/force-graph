@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Graph</title>
+    <style>
+        html,
+        body,
+        #graph {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background-color: black;
+        }
+    </style>
+    <script src="https://unpkg.com/force-graph@1.21.1/dist/force-graph.min.js"></script>
+</head>
+
+<body>
+    <div id="graph"></div>
+    <script>
+        const graph = ForceGraph()(document.getElementById('graph'));
+
+        const numNodes = 250;
+        const nodes = [];
+        const links = [];
+        const baseNodeSizes = [];
+
+        for (let i = 0; i < numNodes; i++) {
+            const baseSize = Math.random() * 10 + 5; // random size between 5 and 15
+            baseNodeSizes.push(baseSize);
+
+            nodes.push({
+                id: i,
+                size: baseSize,
+                phase: 0
+            });
+
+            if (i > 0) {
+                links.push({
+                    source: i,
+                    target: Math.floor(Math.random() * i) // randomly connect to previous nodes
+                });
+            }
+        }
+
+        graph
+            .nodeLabel('id')
+            .nodeRelSize(5)
+            .nodeVal(node => node.size)
+            .nodeColor(() => 'rgba(100,255,100,0.8)')
+            .linkColor(() => 'rgba(100,255,100,0.8)')
+            .graphData({
+                nodes: nodes,
+                links: links
+            })
+            .onEngineStop(() => {
+                console.log('Graph layout has finished updating');
+                center = calculateGeometricCenter();
+
+                nodes.forEach((node, i) => {
+                    node.phase = 3000 - calculateEuclideanDistance(center, node) * 10;
+                    console.log(node.phase);
+                });
+            });
+
+        function breathingFunction(t, phase = 0) {
+            const cycleDuration = 6000;
+            const inhaleRatio = 0.45;
+
+            const progress = ((t + phase) % cycleDuration) / cycleDuration;
+            const inhaleProgress = Math.min(1, progress / inhaleRatio);
+            const exhaleProgress = Math.max(0, (progress - inhaleRatio) / (1 - inhaleRatio));
+
+            const inhale = 0.5 * (1 - Math.cos(inhaleProgress * Math.PI));
+            const exhale = 0.5 * (1 + Math.cos(exhaleProgress * Math.PI));
+
+            return inhale * exhale;
+        }
+        function calculateGeometricCenter() {
+            const { nodes } = graph.graphData();
+
+            if (nodes.length === 0) {
+                return null;
+            }
+
+            const sumX = nodes.reduce((acc, node) => acc + node.x, 0);
+            const sumY = nodes.reduce((acc, node) => acc + node.y, 0);
+
+            const centerX = sumX / nodes.length;
+            const centerY = sumY / nodes.length;
+
+            return { x: centerX, y: centerY };
+        }
+
+        function calculateEuclideanDistance(point1, point2) {
+            const dx = point1.x - point2.x;
+            const dy = point1.y - point2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function animateNodes() {
+            nodes.forEach((node, i) => {
+                const t = Date.now();
+                const breath = breathingFunction(t, node.phase);
+                node.size = baseNodeSizes[i] * (0.1 + breath);
+            });
+
+            requestAnimationFrame(animateNodes);
+        }
+
+        animateNodes();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Graph</title>
+    <style>
+        html,
+        body,
+        #graph {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background-color: black;
+        }
+    </style>
+    <script src="https://unpkg.com/force-graph@1.21.1/dist/force-graph.min.js"></script>
+</head>
+
+<body>
+    <div id="graph"></div>
+    <script>
+        const graph = ForceGraph()(document.getElementById('graph'));
+
+        const numNodes = 10;
+        const nodes = [];
+        const links = [];
+        const baseNodeSizes = [];
+
+        for (let i = 0; i < numNodes; i++) {
+            const baseSize = Math.random() * 10 + 5; // random size between 5 and 15
+            baseNodeSizes.push(baseSize);
+
+            nodes.push({
+                id: i,
+                size: baseSize
+            });
+
+            if (i > 0) {
+                links.push({
+                    source: i,
+                    target: Math.floor(Math.random() * i) // randomly connect to previous nodes
+                });
+            }
+        }
+
+        graph
+            .nodeLabel('id')
+            .nodeRelSize(5)
+            .nodeVal(node => node.size)
+            .graphData({
+                nodes: nodes,
+                links: links
+            });
+
+        function animateNodes() {
+            nodes.forEach((node, i) => {
+                // Change node size using a sinusoidal function
+                node.size = baseNodeSizes[i] * (1 + 0.5 * Math.sin(Date.now() / 1000));
+            });
+
+            // Redraw the graph with the updated node sizes
+            //graph.refresh();
+
+            // Continue the animation loop
+            requestAnimationFrame(animateNodes);
+        }
+
+        // Start the animation loop
+        animateNodes();
+    </script>
+</body>
+
+</html>
